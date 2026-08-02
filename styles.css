@@ -1,0 +1,10 @@
+.logos-bridge-link {
+	color: var(--link-color, #7c3aed);
+	text-decoration: underline dotted;
+	cursor: pointer;
+}
+
+.logos-bridge-link:hover {
+	color: var(--link-color-hover, #a78bfa);
+	text-decoration: underline;
+}

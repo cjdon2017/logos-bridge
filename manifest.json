@@ -1,0 +1,10 @@
+{
+  "id": "logos-bridge",
+  "name": "Logos Bridge",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Convierte referencias bíblicas en enlaces a Logos y permite abrir cualquier selección de texto directamente en Logos Bible Software.",
+  "author": "Carlos",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
