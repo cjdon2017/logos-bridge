@@ -1,7 +1,7 @@
 {
   "id": "logos-bridge",
   "name": "Logos Bridge",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "minAppVersion": "1.0.0",
   "description": "Convierte referencias bíblicas en enlaces a Logos, busca conceptos, autores y preguntas teológicas, y registra citas en tu Commonplace Book.",
   "author": "Carlos",
