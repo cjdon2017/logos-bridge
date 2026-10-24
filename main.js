@@ -264,6 +264,37 @@ function buildBooksSearchUrl(query) {
 function buildSmartQuestionUrl(question) {
   return buildSearchUrl(question, "BooksSearch", "Semantic");
 }
+function buildStudyAssistantUrl(query) {
+  const params = new URLSearchParams({ query });
+  return `logos4://Tools/StudyAssistant?${params.toString()}`;
+}
+var TextPromptModal = class extends import_obsidian.Modal {
+  constructor(app, { title, placeholder, submitLabel, onSubmit }) {
+    super(app);
+    this.title = title;
+    this.placeholder = placeholder;
+    this.submitLabel = submitLabel || "Abrir en Logos";
+    this.onSubmit = onSubmit;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h3", { text: this.title, cls: "logos-bridge-modal-title" });
+    const input = contentEl.createEl("input", { type: "text" });
+    input.placeholder = this.placeholder;
+    input.style.cssText = "width:100%;margin:8px 0 12px;padding:6px 8px;font-size:14px;box-sizing:border-box;border:1px solid var(--background-modifier-border);border-radius:4px;background:var(--background-primary);color:var(--text-normal);";
+    const btn = contentEl.createEl("button", { text: this.submitLabel });
+    btn.style.cssText = "width:100%;padding:6px;font-size:14px;cursor:pointer;background:var(--interactive-accent);color:var(--text-on-accent);border:none;border-radius:4px;";
+    const submit = () => {
+      const val = input.value.trim();
+      if (val) { this.close(); this.onSubmit(val); }
+    };
+    btn.addEventListener("click", submit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") this.close(); });
+    setTimeout(() => input.focus(), 50);
+  }
+  onClose() { this.contentEl.empty(); }
+};
 var LogosBridgePlugin = class extends import_obsidian.Plugin {
   async onload() {
     await this.loadSettings();
@@ -288,10 +319,12 @@ var LogosBridgePlugin = class extends import_obsidian.Plugin {
       id: "search-logos-prompt",
       name: "Buscar en Logos\u2026",
       callback: () => {
-        const query = window.prompt("\xBFQu\xE9 quieres buscar en Logos?");
-        if (query && query.trim()) {
-          this.openInLogos(query.trim());
-        }
+        new TextPromptModal(this.app, {
+          title: "Buscar en Logos",
+          placeholder: "Referencia b\xEDblica, tema, autor\u2026",
+          submitLabel: "Buscar en Logos",
+          onSubmit: (query) => this.openInLogos(query)
+        }).open();
       }
     });
     this.addCommand({
@@ -299,12 +332,16 @@ var LogosBridgePlugin = class extends import_obsidian.Plugin {
       name: "Buscar concepto en el Factbook",
       editorCallback: (editor) => {
         const selection = editor.getSelection().trim();
-        const topic = selection || window.prompt("\xBFQu\xE9 concepto o palabra quieres explorar en el Factbook?");
-        if (!topic || !topic.trim()) {
-          new import_obsidian.Notice("Escribe o selecciona un concepto para buscar en el Factbook.");
+        if (selection) {
+          window.open(buildFactbookConceptUrl(selection));
           return;
         }
-        window.open(buildFactbookConceptUrl(topic.trim()));
+        new TextPromptModal(this.app, {
+          title: "Buscar en el Factbook",
+          placeholder: "Concepto, palabra b\xEDblica o nombre…",
+          submitLabel: "Abrir en Factbook",
+          onSubmit: (topic) => window.open(buildFactbookConceptUrl(topic))
+        }).open();
       }
     });
     this.addCommand({
@@ -312,24 +349,49 @@ var LogosBridgePlugin = class extends import_obsidian.Plugin {
       name: "Buscar autor u obra en Logos",
       editorCallback: (editor) => {
         const selection = editor.getSelection().trim();
-        const query = selection || window.prompt("\xBFQu\xE9 autor u obra quieres buscar en tu biblioteca de Logos?");
-        if (!query || !query.trim()) {
-          new import_obsidian.Notice("Escribe o selecciona un autor u obra para buscar.");
+        if (selection) {
+          window.open(buildBooksSearchUrl(selection));
           return;
         }
-        window.open(buildBooksSearchUrl(query.trim()));
+        new TextPromptModal(this.app, {
+          title: "Buscar autor u obra",
+          placeholder: "Nombre del autor o t\xEDtulo de la obra…",
+          submitLabel: "Buscar en mi biblioteca",
+          onSubmit: (query) => window.open(buildBooksSearchUrl(query))
+        }).open();
       }
     });
     this.addCommand({
       id: "smart-theological-question",
       name: "Pregunta teol\xF3gica (Smart Search en Logos)",
       callback: () => {
-        const question = window.prompt(
-          "Escribe tu pregunta teol\xF3gica (Logos usar\xE1 IA para buscar en tu biblioteca):"
-        );
-        if (question && question.trim()) {
-          window.open(buildSmartQuestionUrl(question.trim()));
+        new TextPromptModal(this.app, {
+          title: "B\xFAsqueda Sem\xE1ntica en Logos",
+          placeholder: "Escribe tu pregunta teol\xF3gica…",
+          submitLabel: "Smart Search",
+          onSubmit: (question) => window.open(buildSmartQuestionUrl(question))
+        }).open();
+      }
+    });
+    this.addCommand({
+      id: "study-assistant-research",
+      name: "🔍 Asistente de Estudio – Modo Investigativo",
+      editorCallback: (editor) => {
+        const selection = editor.getSelection().trim();
+        if (selection) {
+          window.open(buildStudyAssistantUrl(selection));
+          new import_obsidian.Notice("🔍 Abriendo en Modo Investigativo…");
+          return;
         }
+        new TextPromptModal(this.app, {
+          title: "Asistente de Estudio – Modo Investigativo",
+          placeholder: "\xBFQu\xE9 quieres investigar en tu biblioteca?",
+          submitLabel: "🔍 Investigar en Logos",
+          onSubmit: (query) => {
+            window.open(buildStudyAssistantUrl(query));
+            new import_obsidian.Notice("🔍 Abriendo en Modo Investigativo…");
+          }
+        }).open();
       }
     });
     this.addCommand({
